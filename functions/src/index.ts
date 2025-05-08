@@ -18,6 +18,11 @@ admin.initializeApp();
 export { submitContactForm } from "./forms/submitContactForm";
 export { submitFeedbackForm } from "./forms/submitFeedbackForm";
 
+// Admin
+export { getSubmissions } from "./admin/getSubmissions";
+export { deleteSubmission } from "./admin/deleteSubmission";
+export { markAsReviewed } from "./admin/markAsReviewed";
+
 // Start writing functions
 // https://firebase.google.com/docs/functions/typescript
 
