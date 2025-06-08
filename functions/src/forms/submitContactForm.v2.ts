@@ -7,14 +7,14 @@ import {validateHoneypot} from "../utils/validation";
 // Configure and create CORS middleware
 const cors = corsLib({
   origin: [
-    'https://www.sciscribesolutions.com',
-    'https://sciscribe-elegance.web.app',
-    'http://localhost:5173'
+    "https://www.sciscribesolutions.com",
+    "https://sciscribe-elegance.web.app",
+    "http://localhost:5173",
   ],
-  methods: ['POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  methods: ["POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
-  maxAge: 3600
+  maxAge: 3600,
 });
 
 // CORS handler
@@ -49,16 +49,16 @@ export const submitContactFormV2 = functions
   .region("asia-south1")
   .https.onRequest((req, res) => {
     // Handle preflight
-    if (req.method === 'OPTIONS') {
+    if (req.method === "OPTIONS") {
       return corsHandler(req, res, () => {
-        res.status(204).send('');
+        res.status(204).send("");
       });
     }
 
     // Handle actual request
     return corsHandler(req, res, async () => {
       if (req.method !== "POST") {
-        res.set('Access-Control-Allow-Origin', 'https://www.sciscribesolutions.com');
+        res.set("Access-Control-Allow-Origin", "https://www.sciscribesolutions.com");
         res.status(405).json({error: "Method not allowed"});
         return;
       }
@@ -107,19 +107,19 @@ export const submitContactFormV2 = functions
 
         // Set CORS headers for the response
         res.set({
-          'Access-Control-Allow-Origin': 'https://www.sciscribesolutions.com',
-          'Access-Control-Allow-Credentials': 'true',
-          'Access-Control-Allow-Methods': 'POST, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-          'Access-Control-Max-Age': '3600'
+          "Access-Control-Allow-Origin": "https://www.sciscribesolutions.com",
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Methods": "POST, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type, Authorization",
+          "Access-Control-Max-Age": "3600",
         });
         res.status(200).json({success: true});
       } catch (error) {
         console.error("Error processing form:", error);
         // Ensure CORS headers are set even for error responses
         res.set({
-          'Access-Control-Allow-Origin': 'https://www.sciscribesolutions.com',
-          'Access-Control-Allow-Credentials': 'true'
+          "Access-Control-Allow-Origin": "https://www.sciscribesolutions.com",
+          "Access-Control-Allow-Credentials": "true",
         });
         res.status(500).json({error: "Failed to process form"});
       }
