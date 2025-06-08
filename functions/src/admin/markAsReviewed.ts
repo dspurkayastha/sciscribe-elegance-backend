@@ -24,9 +24,9 @@ export const markAsReviewed = functions.https.onRequest(
         return;
       }
 
-      const collection = type === "contact"
-        ? "contact_submissions"
-        : "feedback_entries";
+      const collection = type === "contact" ?
+        "contact_submissions" :
+        "feedback_entries";
 
       const update: Record<string, unknown> = {reviewed};
       if (notes) update.adminNotes = notes;
