@@ -1,24 +1,9 @@
 import * as functions from "firebase-functions";
-import * as corsLib from "cors";
 import {z} from "zod";
 import {getFirestore} from "firebase-admin/firestore";
+import {Request, Response} from "express";
 import {validateHoneypot} from "../utils/validation";
-
-// Configure and create CORS middleware
-const cors = corsLib({
-  origin: [
-    "https://www.sciscribesolutions.com",
-    "https://sciscribe-elegance.web.app",
-    "http://localhost:5173",
-  ],
-  methods: ["POST", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true,
-  maxAge: 3600,
-});
-
-// CORS handler
-const corsHandler = cors;
+import {handleCors, corsPreflight} from "../utils/cors";
 
 const contactSchemaV2 = z.object({
   name: z.string().min(1),
@@ -45,83 +30,75 @@ const contactSchemaV2 = z.object({
   gdprConsent1: z.boolean(),
 });
 
-export const submitContactFormV2 = functions
-  .region("asia-south1")
-  .https.onRequest((req, res) => {
-    // Handle preflight
-    if (req.method === "OPTIONS") {
-      return corsHandler(req, res, () => {
-        res.status(204).send("");
+const contactFormHandler = async (req: Request, res: Response) => {
+  // Handle preflight
+  if (corsPreflight(req, res)) {
+    return;
+  }
+
+  // Apply CORS
+  try {
+    await handleCors(req, res, () => {});
+  } catch (error) {
+    console.error("CORS error:", error);
+    res.status(403).json({ error: "Not allowed by CORS" });
+    return;
+  }
+
+  if (req.method !== "POST") {
+    res.status(405).json({error: "Method not allowed"});
+    return;
+  }
+
+  try {
+    const parsed = contactSchemaV2.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({
+        error: "Invalid input",
+        details: parsed.error.errors,
       });
+      return;
     }
 
-    // Handle actual request
-    return corsHandler(req, res, async () => {
-      if (req.method !== "POST") {
-        res.set("Access-Control-Allow-Origin", "https://www.sciscribesolutions.com");
-        res.status(405).json({error: "Method not allowed"});
-        return;
-      }
+    const data = parsed.data;
 
-      try {
-        const parsed = contactSchemaV2.safeParse(req.body);
-        if (!parsed.success) {
-          res.status(400).json({
-            error: "Invalid input",
-            details: parsed.error.errors,
-          });
-          return;
-        }
+    if (!validateHoneypot(data.honeypot)) {
+      res.status(400).json({error: "Spam detected"});
+      return;
+    }
 
-        const data = parsed.data;
+    const db = getFirestore();
+    const submission = {
+      name: data.name,
+      email: data.email,
+      message: data.message,
+      fileUrls: data.fileUrls || [],
+      phone: data.phone,
+      service: data.service,
+      addOns: data.addOns || {},
+      documentType: data.documentType,
+      subjectArea: data.subjectArea,
+      wordCount: data.wordCount,
+      deadline: data.deadline || null,
+      contactMethod: data.contactMethod,
+      source: data.source || null,
+      gdprConsent1: data.gdprConsent1,
+      createdAt: new Date().toISOString(),
+      reviewed: false,
+      v: 2,
+    };
 
-        if (!validateHoneypot(data.honeypot)) {
-          res.status(400).json({error: "Spam detected"});
-          return;
-        }
+    await db.collection("contact_submissions").add(submission);
 
-        const db = getFirestore();
-        const submission = {
-          name: data.name,
-          email: data.email,
-          message: data.message,
-          fileUrls: data.fileUrls || [],
-          phone: data.phone,
-          service: data.service,
-          addOns: data.addOns || {},
-          documentType: data.documentType,
-          subjectArea: data.subjectArea,
-          wordCount: data.wordCount,
-          deadline: data.deadline || null,
-          contactMethod: data.contactMethod,
-          source: data.source || null,
-          gdprConsent1: data.gdprConsent1,
-          createdAt: new Date().toISOString(),
-          reviewed: false,
-          v: 2,
-        };
+    // CORS headers are already set by the middleware
+    res.status(200).json({success: true});
+  } catch (error) {
+    console.error("Error processing form:", error);
+    // CORS headers are already set by the middleware
+    res.status(500).json({error: "Failed to process form"});
+  }
+};
 
-        await db
-          .collection("contact_submissions")
-          .add(submission);
-
-        // Set CORS headers for the response
-        res.set({
-          "Access-Control-Allow-Origin": "https://www.sciscribesolutions.com",
-          "Access-Control-Allow-Credentials": "true",
-          "Access-Control-Allow-Methods": "POST, OPTIONS",
-          "Access-Control-Allow-Headers": "Content-Type, Authorization",
-          "Access-Control-Max-Age": "3600",
-        });
-        res.status(200).json({success: true});
-      } catch (error) {
-        console.error("Error processing form:", error);
-        // Ensure CORS headers are set even for error responses
-        res.set({
-          "Access-Control-Allow-Origin": "https://www.sciscribesolutions.com",
-          "Access-Control-Allow-Credentials": "true",
-        });
-        res.status(500).json({error: "Failed to process form"});
-      }
-    });
-  });
+export const submitContactFormV2 = functions
+  .region("asia-south1")
+  .https.onRequest(contactFormHandler);

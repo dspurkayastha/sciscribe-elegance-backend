@@ -1,15 +1,30 @@
 {
   "compilerOptions": {
     "module": "commonjs",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
     "noImplicitReturns": true,
     "noUnusedLocals": true,
     "outDir": "lib",
+    "rootDir": "src",
     "sourceMap": true,
     "strict": true,
-    "target": "es2017"
+    "target": "es2017",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
+    "typeRoots": [
+      "./node_modules/@types"
+    ]
   },
-  "compileOnSave": true,
   "include": [
-    "src"
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "**/*.spec.ts",
+    "**/node_modules/**"
   ]
 }

@@ -5,17 +5,14 @@ import {Request, Response} from "express";
 import {validateHoneypot} from "../utils/validation";
 import {handleCors, corsPreflight} from "../utils/cors";
 
-const feedbackSchema = z.object({
+const quickContactSchema = z.object({
   name: z.string().min(1),
   email: z.string().email(),
-  rating: z.number().min(1).max(5),
-  feedback: z.string().min(1),
-  service: z.string().min(1),
+  message: z.string().min(1),
   honeypot: z.string().optional(),
-  consentToShow: z.boolean().optional(),
 });
 
-const feedbackFormHandler = async (req: Request, res: Response) => {
+const quickContactHandler = async (req: Request, res: Response) => {
   // Handle preflight
   if (corsPreflight(req, res)) {
     return;
@@ -36,7 +33,7 @@ const feedbackFormHandler = async (req: Request, res: Response) => {
   }
 
   try {
-    const parsed = feedbackSchema.safeParse(req.body);
+    const parsed = quickContactSchema.safeParse(req.body);
     if (!parsed.success) {
       res.status(400).json({
         error: "Invalid input",
@@ -56,14 +53,12 @@ const feedbackFormHandler = async (req: Request, res: Response) => {
     const submission = {
       name: data.name,
       email: data.email,
-      rating: data.rating,
-      feedback: data.feedback,
-      service: data.service,
-      consentToShow: data.consentToShow || false,
+      message: data.message,
       createdAt: new Date().toISOString(),
+      reviewed: false,
     };
 
-    await db.collection("feedback").add(submission);
+    await db.collection("quick_contact").add(submission);
     res.status(200).json({success: true});
   } catch (err) {
     console.error(err);
@@ -71,6 +66,6 @@ const feedbackFormHandler = async (req: Request, res: Response) => {
   }
 };
 
-export const submitFeedbackForm = functions
+export const submitQuickContactForm = functions
   .region("asia-south1")
-  .https.onRequest(feedbackFormHandler);
+  .https.onRequest(quickContactHandler);
