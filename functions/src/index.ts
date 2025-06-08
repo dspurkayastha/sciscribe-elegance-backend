@@ -16,6 +16,7 @@ export {submitContactForm} from "./forms/submitContactForm";
 export {submitContactFormV2} from "./forms/submitContactForm.v2";
 export {submitFeedbackForm} from "./forms/submitFeedbackForm";
 export {submitQuickContactForm} from "./forms/submitQuickContactForm";
+export {submitConsultationForm} from "./forms/submitConsultationForm";
 
 // Admin
 export {getSubmissions} from "./admin/getSubmissions";
