@@ -6,6 +6,8 @@ const allowedOrigins = [
   "http://localhost:3000",
   "https://sciscribe-elegance.web.app",
   "https://sciscribe-elegance.firebaseapp.com",
+  "https://www.sciscribesolutions.com",
+  "https://sciscribesolutions.com",
 ];
 
 // CORS options
@@ -34,19 +36,33 @@ export const handleCors = async (
   res: Response,
   next: NextFunction
 ) => {
+  // Set CORS headers
+  res.set("Access-Control-Allow-Origin", "*");
+  res.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.set("Access-Control-Max-Age", "3600");
+
+  // Handle preflight requests
+  if (req.method === "OPTIONS") {
+    res.status(204).send("");
+    return;
+  }
+
   try {
     await corsMiddleware(req, res, emptyCorsHandler);
+    next();
   } catch (error) {
     console.error("CORS error:", error);
     res.status(403).json({error: "Not allowed by CORS"});
-    return;
   }
-  next();
 };
 
 export const corsPreflight = (req: Request, res: Response) => {
   if (req.method === "OPTIONS") {
-    res.status(204).send();
+    res.set("Access-Control-Allow-Origin", "*");
+    res.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    res.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    res.status(204).send("");
     return true;
   }
   return false;
