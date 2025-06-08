@@ -23,10 +23,10 @@ const feedbackFormHandler = async (req: Request, res: Response) => {
 
   // Apply CORS
   try {
-    await handleCors(req, res, () => {});
+    await handleCors(req, res, () => {/* empty function for CORS */});
   } catch (error) {
     console.error("CORS error:", error);
-    res.status(403).json({ error: "Not allowed by CORS" });
+    res.status(403).json({error: "Not allowed by CORS"});
     return;
   }
 

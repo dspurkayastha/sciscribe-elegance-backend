@@ -1,11 +1,23 @@
 {
+  "root": true,
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
-    "project": "./tsconfig.json"
+    "project": "./tsconfig.json",
+    "ecmaVersion": 2020,
+    "sourceType": "module"
   },
   "plugins": ["@typescript-eslint"],
   "extends": [
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended"
-  ]
+  ],
+  "rules": {
+    "object-curly-spacing": ["error", "never"],
+    "quotes": ["error", "double"],
+    "comma-dangle": ["error", "always-multiline"],
+    "@typescript-eslint/no-empty-function": "off",
+    "@typescript-eslint/no-explicit-any": "warn",
+    "max-len": ["error", { "code": 120 }]
+  },
+  "ignorePatterns": ["lib/**/*.js"]
 }

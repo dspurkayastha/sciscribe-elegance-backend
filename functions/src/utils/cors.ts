@@ -1,13 +1,15 @@
-import cors, {CorsOptions} from "cors";
+import cors from "cors";
 import {Request, Response, NextFunction} from "express";
 
+// Define allowed origins
 const allowedOrigins = [
-  "https://www.sciscribesolutions.com",
+  "http://localhost:3000",
   "https://sciscribe-elegance.web.app",
-  "http://localhost:5173",
+  "https://sciscribe-elegance.firebaseapp.com",
 ];
 
-const corsOptions: CorsOptions = {
+// CORS options
+const corsOptions: cors.CorsOptions = {
   origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
@@ -23,20 +25,28 @@ const corsOptions: CorsOptions = {
 
 const corsMiddleware = cors(corsOptions);
 
-export const handleCors = (req: Request, res: Response, next: NextFunction) => {
-  corsMiddleware(req, res, (error) => {
-    if (error) {
-      console.error("CORS error:", error);
-      res.status(403).json({ error: "Not allowed by CORS" });
-      return;
-    }
-    next();
-  });
+const emptyCorsHandler = () => {
+  // Empty function for CORS
+};
+
+export const handleCors = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    await corsMiddleware(req, res, emptyCorsHandler);
+  } catch (error) {
+    console.error("CORS error:", error);
+    res.status(403).json({error: "Not allowed by CORS"});
+    return;
+  }
+  next();
 };
 
 export const corsPreflight = (req: Request, res: Response) => {
   if (req.method === "OPTIONS") {
-    res.sendStatus(204);
+    res.status(204).send();
     return true;
   }
   return false;
